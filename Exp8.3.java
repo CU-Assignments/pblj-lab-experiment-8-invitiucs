@@ -31,3 +31,67 @@ Enhancements (Optional)
 - Display submitted attendance records in attendance.jsp.
 - Add CSS/Bootstrap for better UI.
 - Implement session handling for authentication.
+code 
+
+CREATE DATABASE StudentDB;
+USE StudentDB;
+CREATE TABLE attendance (
+id INT AUTO_INCREMENT PRIMARY KEY,
+student_name VARCHAR(100),
+subject VARCHAR(100),
+date DATE
+);
+<%@ page import="java.sql.*" %>
+<!DOCTYPE html>
+<html>
+<head>
+<title>Student Attendance</title>
+</head>
+<body>
+<form action="SaveAttendanceServlet" method="post">
+Name: <input type="text" name="student_name" required><br>
+Subject: <input type="text" name="subject" required><br>
+Date: <input type="date" name="date" required><br>
+<input type="submit" value="Submit">
+</form>
+</body>
+</html> import java.io.IOException;
+import java.io.PrintWriter;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+@WebServlet("/SaveAttendanceServlet")
+public class SaveAttendanceServlet extends HttpServlet {
+protected void doPost(HttpServletRequest request, HttpServletResponse response)
+throws ServletException, IOException {
+response.setContentType("text/html");
+PrintWriter out = response.getWriter();
+String name = request.getParameter("student_name");
+String subject = request.getParameter("subject");
+String date = request.getParameter("date");
+try {
+Class.forName("com.mysql.cj.jdbc.Driver");
+Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/StudentDB", "root", "password");
+String query = "INSERT INTO attendance (student_name, subject, date) VALUES (?, ?, ?)";
+PreparedStatement ps = con.prepareStatement(query);
+ps.setString(1, name);
+ps.setString(2, subject);
+ps.setString(3, date);
+int result = ps.executeUpdate();
+if (result > 0) {
+out.println("<h3>Attendance recorded successfully.</h3>");
+} else {
+out.println("<h3>Failed to record attendance.</h3>");
+}
+con.close();
+} catch (Exception e) {
+out.println("<h3>Error: " + e.getMessage() + "</h3>");
+}
+out.close();
+}
+}
